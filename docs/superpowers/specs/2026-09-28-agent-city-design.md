@@ -97,9 +97,11 @@ from `scene/` at `/`. Exits with code 3 if the port is already in use.
   `agent_status` is `working` (herdr statuses: idle | working | blocked | done | unknown;
   `blocked` = waiting on the user, not counted); `projects` = distinct project (cwd, worktrees folded into their repo)
   among working agents. If herdr is missing or errors → fallback.
-- **Fallback (no herdr)**: main session `.jsonl` files under
-  `~/.claude/projects/*/` modified in the last 30s count as working agents;
-  projects = distinct project dirs among them.
+- **Claude logs (always merged)**: main session `.jsonl` files under
+  `~/.claude/projects/*/` modified in the last 30s count as working agents,
+  unless herdr tracks that session id (`agent_session.value` = log filename),
+  in which case herdr's status wins. Project keys use Claude's dir-name
+  encoding (`cwd` with non-alphanumerics → `-`) for both sources.
 - **Subagents**: `~/.claude/projects/*/*/subagents/agent-*.jsonl` modified in the
   last 30s. Overlay "Agents" = working agents + active subagents.
 - **Tokens**: incremental tail of all `~/.claude/projects/**/*.jsonl` (per-file

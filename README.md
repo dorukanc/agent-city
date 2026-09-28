@@ -9,7 +9,7 @@ Inspired by [@internetphysics](https://x.com/internetphysics/status/210430571007
 
 - One continuous panorama across all your displays (each display renders its slice of one camera).
 - Downtown and the stats overlay sit on the left-most display.
-- Agent activity comes from herdr when installed, otherwise from Claude Code's session logs.
+- Agent activity merges herdr (when installed) with Claude Code's session logs, so agents count wherever they run — herdr, a terminal, the desktop app.
 - Token counts come from Claude Code's logs (`~/.claude/projects/**/*.jsonl`).
 
 ## Requirements
@@ -32,8 +32,9 @@ building icon in the menu bar for **Pause**, **Demo mode**, **Reload scene**,
 ## How activity is computed
 
 - **Agents** — herdr agents whose status is `working` (`blocked` means waiting on you and
-  doesn't count), plus Claude Code subagents whose log changed in the last 30s.
-  Without herdr, Claude Code sessions whose log changed in the last 30s count as working.
+  doesn't count), plus Claude Code sessions outside herdr whose log changed in the last 30s,
+  plus subagents whose log changed in the last 30s. Sessions herdr tracks are matched by
+  session id, so they're never counted twice and herdr's status wins for them.
 - **Projects** — distinct working directories of working agents (worktrees count as their repo).
 - **Tokens today** — `input + output + cache creation + cache read` for every assistant
   message logged today (local time), each message counted once.
