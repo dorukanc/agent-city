@@ -5,6 +5,8 @@ agents are idle, and comes alive while they work — windows light up and Tron-s
 light streams flow through the streets. A small overlay shows projects, agents
 (with subagents), tokens used today and tokens per minute.
 
+![agent-city: the city lights up while agents work, then goes quiet again](docs/media/agent-city.gif)
+
 Inspired by [@internetphysics](https://x.com/internetphysics/status/2104305710079119649).
 
 - One continuous panorama across all your displays (each display renders its slice of one camera).
@@ -81,6 +83,7 @@ cd app && swift build && AGENT_CITY_ROOT=.. .build/debug/AgentCity
 - `collector/` — Node, zero dependencies: tails logs, polls herdr, serves `/stats`, `/events` (SSE) and the scene.
 - `scene/` — Three.js (vendored), no build step: city generation, window shader, light streams, overlay.
 - `app/` — Swift menu-bar app: one click-through desktop-level window per display, supervises the collector.
+- `promo/` — the launch film: a frame-exact capture of the real scene, a Remotion edit and a synthesized soundtrack (see `promo/README.md`).
 
 ## Troubleshooting
 
