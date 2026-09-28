@@ -45,3 +45,6 @@ server.listen(port, '127.0.0.1', () => {
   tick();
   setInterval(ping, 15_000);
 });
+
+// When launched by the app, exit if the app goes away (we get re-parented to launchd).
+if (process.env.AGENT_CITY_PARENT) setInterval(() => { if (process.ppid === 1) process.exit(0); }, 5000);
