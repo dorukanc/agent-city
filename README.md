@@ -9,7 +9,7 @@ Inspired by [@internetphysics](https://x.com/internetphysics/status/210430571007
 
 - One continuous panorama across all your displays (each display renders its slice of one camera).
 - Downtown and the stats overlay sit on the left-most display.
-- Agent activity comes from [herdr](https://github.com/ogulcancelik/herdr) when installed, otherwise from Claude Code's session logs.
+- Agent activity comes from herdr when installed, otherwise from Claude Code's session logs.
 - Token counts come from Claude Code's logs (`~/.claude/projects/**/*.jsonl`).
 
 ## Requirements
@@ -49,7 +49,7 @@ Optional `~/.config/agent-city/config.json`:
   "port": 47823,
   "includeCacheRead": true,
   "herdrPath": "herdr",
-  "claudeProjectsDir": "~/.claude/projects"
+  "claudeProjectsDir": "/Users/you/.claude/projects"
 }
 ```
 
