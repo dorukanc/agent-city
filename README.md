@@ -10,6 +10,7 @@ light streams flow through the streets. A small overlay shows projects, agents
 Inspired by [@internetphysics](https://x.com/internetphysics/status/2104305710079119649).
 
 - One continuous panorama across all your displays (each display renders its slice of one camera).
+- Works on one, two or three displays: the city is laid out differently for each, chosen from the combined canvas shape (a 21:9 ultrawide gets the single layout, a 32:9 one gets the dual layout).
 - Downtown and the stats overlay sit on the left-most display.
 - Agent activity merges herdr (when installed) with Claude Code's session logs, so agents count wherever they run — herdr, a terminal, the desktop app.
 - Token counts come from Claude Code's logs (`~/.claude/projects/**/*.jsonl`).
@@ -70,6 +71,7 @@ Useful scene URLs:
 
 - `/?demo=1` — fake activity loop
 - `/?fullW=5760&fullH=1080&x=0&w=1920&h=1080` — the left slice of a 3×1080p panorama
+- `/?layout=single` (or `dual`, `triple`) — force a city layout instead of picking by canvas shape
 - `/?a=0.9` — force an activity level (0–1)
 
 Run the app against your checkout without installing:

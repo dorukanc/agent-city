@@ -1,3 +1,5 @@
+import { LAYOUTS } from './layouts.js';
+
 export function mulberry32(a) {
   return () => {
     a = (a + 0x6d2b79f5) | 0;
@@ -7,36 +9,28 @@ export function mulberry32(a) {
   };
 }
 
-// Density peaks in world coordinates (camera looks toward -z; x < 0 is the left display).
-const CENTERS = [
-  { x: -1250, z: -200, r: 340, w: 1.0 },  // downtown (left display)
-  { x: -50, z: -350, r: 240, w: 0.5 },   // secondary cluster (middle)
-  { x: 1250, z: -250, r: 220, w: 0.4 },   // small cluster (right)
-];
-
-const HIGHWAY = { ax: -300, az: 900, bx: 3400, bz: -1500, width: 26 };
-
 /**
- * Seeded street grid with buildings on subdivided lots. All coordinates are local to a
- * group rotated by `rotation` around Y.
+ * Seeded street grid with buildings on subdivided lots, dense around the layout's centers.
+ * All coordinates are local to a group rotated by `rotation` around Y.
  */
-export function generateCity({ seed = 7, cols = 120, rows = 70, block = 56, street = 14, rotation = 0.55 } = {}) {
+export function generateCity({ seed = 7, layout = LAYOUTS.triple, cols = 120, rows = 70, block = 56, street = 14, rotation = 0.55 } = {}) {
+  const { centers, highway: road } = layout;
   const rnd = mulberry32(seed);
   const pitch = block + street;
   const ox = -(cols * pitch) / 2, oz = -(rows * pitch) / 2;
   const cos = Math.cos(rotation), sin = Math.sin(rotation);
   const toLocal = (x, z) => ({ x: x * cos - z * sin, z: x * sin + z * cos });
-  // Highway: a straight diagonal in world space (bottom-middle to upper-right), kept clear of buildings.
-  const ha = toLocal(HIGHWAY.ax, HIGHWAY.az), hb = toLocal(HIGHWAY.bx, HIGHWAY.bz);
-  const highway = { ax: ha.x, az: ha.z, bx: hb.x, bz: hb.z, width: HIGHWAY.width };
+  // Highway: a straight diagonal in world space (toward the upper right), kept clear of buildings.
+  const ha = toLocal(road.ax, road.az), hb = toLocal(road.bx, road.bz);
+  const highway = { ax: ha.x, az: ha.z, bx: hb.x, bz: hb.z, width: road.width };
   const hLen = Math.hypot(hb.x - ha.x, hb.z - ha.z);
   const onHighway = (x, z, pad) => {
     const t = ((x - ha.x) * (hb.x - ha.x) + (z - ha.z) * (hb.z - ha.z)) / (hLen * hLen);
     const px = ha.x + (hb.x - ha.x) * t, pz = ha.z + (hb.z - ha.z) * t;
-    return Math.hypot(x - px, z - pz) < HIGHWAY.width / 2 + pad;
+    return Math.hypot(x - px, z - pz) < road.width / 2 + pad;
   };
   const density = (lx, lz) => densityWorld(lx * cos + lz * sin, -lx * sin + lz * cos);
-  const densityWorld = (x, z) => CENTERS.reduce((s, c) => s + c.w * Math.exp(-((x - c.x) ** 2 + (z - c.z) ** 2) / (2 * c.r * c.r)), 0);
+  const densityWorld = (x, z) => centers.reduce((s, c) => s + c.w * Math.exp(-((x - c.x) ** 2 + (z - c.z) ** 2) / (2 * c.r * c.r)), 0);
   const buildings = [];
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {

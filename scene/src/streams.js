@@ -2,17 +2,15 @@ import * as THREE from 'three';
 import { easeToward } from './activity.js';
 
 const MAX_QUADS = 9000;
-const MAX_STREET = 700, MAX_HIGHWAY = 140;
 const WHITE = [1.3, 1.2, 1.1], RED = [1.5, 0.22, 0.1], ORANGE = [1.4, 0.55, 0.14], CYAN = [0.35, 1.1, 1.4];
 const Y = 0.8;
-// Streams only live on the part of the grid the camera can see (world-space box).
-const VISIBLE = { minX: -3000, maxX: 3000, minZ: -1300, maxZ: 500 };
 
 /**
  * Tron-style light streams: heads that drive along the street grid (and a two-way highway),
- * each dragging a long additive ribbon that fades toward its tail.
+ * each dragging a long additive ribbon that fades toward its tail. Streams only live inside the
+ * layout's world-space box (the part of the grid the camera can see).
  */
-export function createStreams(city, rnd) {
+export function createStreams(city, rnd, { box: VISIBLE, street: MAX_STREET, highway: MAX_HIGHWAY }) {
   const { ox, oz, pitch, cols, rows } = city.grid;
   const pos = new Float32Array(MAX_QUADS * 12), col = new Float32Array(MAX_QUADS * 12);
   const idx = new Uint32Array(MAX_QUADS * 6);

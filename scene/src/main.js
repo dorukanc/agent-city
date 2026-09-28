@@ -12,6 +12,7 @@ import { createStreams } from './streams.js';
 import { createOverlay } from './overlay.js';
 import { connectStats } from './stats-client.js';
 import { demoStats } from './demo.js';
+import { LAYOUTS, pickLayout } from './layouts.js';
 
 const P = readParams(location.search, { w: innerWidth, h: innerHeight });
 
@@ -24,10 +25,13 @@ document.body.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x06080d);
 
+// The canvas shape (1, 2 or 3 displays wide) picks the composition.
+const layout = LAYOUTS[pickLayout(P.fullW / P.fullH, P.layout)];
+
 // One camera frames the whole multi-display canvas; each window renders its own slice of it.
-const camera = new THREE.PerspectiveCamera(13, P.fullW / P.fullH, 10, 16000);
-camera.position.set(0, 2600, 1700);
-camera.lookAt(0, 0, -250);
+const camera = new THREE.PerspectiveCamera(layout.camera.fov, P.fullW / P.fullH, 10, 16000);
+camera.position.set(...layout.camera.position);
+camera.lookAt(...layout.camera.lookAt);
 const applyView = () => {
   const p = readParams(location.search, { w: innerWidth, h: innerHeight });
   camera.aspect = p.fullW / p.fullH;
@@ -36,14 +40,14 @@ const applyView = () => {
 };
 applyView();
 
-const city = generateCity({ seed: P.seed });
+const city = generateCity({ seed: P.seed, layout });
 const group = new THREE.Group();
 group.rotation.y = city.rotation;
 scene.add(group);
 const ground = createGround(city);
 const buildings = createBuildings(city);
 group.add(ground.mesh, buildings.mesh);
-const streams = createStreams(city, mulberry32(P.seed + 1));
+const streams = createStreams(city, mulberry32(P.seed + 1), layout.streams);
 group.add(streams.mesh);
 
 const composer = new EffectComposer(renderer);

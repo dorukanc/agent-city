@@ -5,6 +5,8 @@ import { readParams } from '../src/params.js';
 import { generateCity } from '../src/city.js';
 import { formatStats } from '../src/format.js';
 import { demoStats } from '../src/demo.js';
+import { LAYOUTS, pickLayout } from '../src/layouts.js';
+import * as THREE from '../vendor/three/three.module.js';
 
 test('activityLevel curve', () => {
   assert.equal(activityLevel({ working: 0, subagents: 0 }), 0);
@@ -38,7 +40,7 @@ test('easeToward converges', () => {
 
 test('readParams defaults to the window and reads slices', () => {
   assert.deepEqual(readParams('', { w: 800, h: 600 }),
-    { fullW: 800, fullH: 600, x: 0, y: 0, w: 800, h: 600, fps: 60, overlay: true, demo: false, seed: 7, forceActivity: -1 });
+    { fullW: 800, fullH: 600, x: 0, y: 0, w: 800, h: 600, fps: 60, overlay: true, demo: false, seed: 7, forceActivity: -1, layout: null });
   const p = readParams('?fullW=5760&fullH=1080&x=1920&y=0&w=1920&h=1080&fps=30&overlay=0&demo=1', { w: 1, h: 1 });
   assert.equal(p.fullW, 5760); assert.equal(p.x, 1920); assert.equal(p.fps, 30);
   assert.equal(p.overlay, false); assert.equal(p.demo, true);
@@ -70,4 +72,31 @@ test('demoStats cycles idle → busy and tokens only grow', () => {
   assert.equal(demoStats(1).working, 0);
   assert.ok(demoStats(20).working + demoStats(20).subagents >= 3);
   assert.ok(demoStats(21).tokensToday >= demoStats(20).tokensToday);
+});
+
+test('pickLayout by canvas aspect, URL override wins', () => {
+  assert.equal(pickLayout(16 / 9), 'single');
+  assert.equal(pickLayout(21 / 9), 'single');
+  assert.equal(pickLayout(9 / 32), 'single'); // stacked displays
+  assert.equal(pickLayout(32 / 9), 'dual');
+  assert.equal(pickLayout(3.2), 'dual'); // two 16:10
+  assert.equal(pickLayout(48 / 9), 'triple');
+  assert.equal(pickLayout(4.8), 'triple'); // three 16:10
+  assert.equal(pickLayout(16 / 9, 'triple'), 'triple');
+  assert.equal(pickLayout(16 / 9, 'bogus'), 'single');
+});
+
+test('each layout frames downtown on the left-most display and keeps clusters on screen', () => {
+  for (const [name, n] of [['single', 1], ['dual', 2], ['triple', 3]]) {
+    const { camera: c, centers } = LAYOUTS[name];
+    const cam = new THREE.PerspectiveCamera(c.fov, (16 / 9) * n, 10, 16000);
+    cam.position.set(...c.position);
+    cam.lookAt(...c.lookAt);
+    cam.updateMatrixWorld();
+    const ndc = centers.map((p) => new THREE.Vector3(p.x, 0, p.z).project(cam));
+    for (const v of ndc) assert.ok(Math.abs(v.x) < 0.9 && Math.abs(v.y) < 0.9, `${name}: cluster off screen`);
+    assert.ok(ndc[0].x < -1 + 2 / n, `${name}: downtown not on the left-most display`);
+    const city = generateCity({ layout: LAYOUTS[name] });
+    assert.ok(city.buildings.length > 3000, `${name}: city too sparse`);
+  }
 });
