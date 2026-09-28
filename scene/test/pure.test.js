@@ -38,7 +38,7 @@ test('easeToward converges', () => {
 
 test('readParams defaults to the window and reads slices', () => {
   assert.deepEqual(readParams('', { w: 800, h: 600 }),
-    { fullW: 800, fullH: 600, x: 0, y: 0, w: 800, h: 600, fps: 60, overlay: true, demo: false, seed: 7 });
+    { fullW: 800, fullH: 600, x: 0, y: 0, w: 800, h: 600, fps: 60, overlay: true, demo: false, seed: 7, forceActivity: -1 });
   const p = readParams('?fullW=5760&fullH=1080&x=1920&y=0&w=1920&h=1080&fps=30&overlay=0&demo=1', { w: 1, h: 1 });
   assert.equal(p.fullW, 5760); assert.equal(p.x, 1920); assert.equal(p.fps, 30);
   assert.equal(p.overlay, false); assert.equal(p.demo, true);

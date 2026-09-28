@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "collector", "runtimeExecutable": "node", "runtimeArgs": ["collector/index.js", "--scene", "scene"], "port": 47823 }
+  ]
+}

@@ -7,22 +7,24 @@ export function mulberry32(a) {
   };
 }
 
-// Density peaks, in grid-local coordinates (x right, z toward camera before rotation).
+// Density peaks in world coordinates (camera looks toward -z; x < 0 is the left display).
 const CENTERS = [
-  { x: -1150, z: -250, r: 420, w: 1.0 },  // downtown (left display)
-  { x: 150, z: -350, r: 300, w: 0.55 },   // secondary cluster (middle)
-  { x: 1300, z: -150, r: 260, w: 0.35 },  // small cluster (right)
+  { x: -1250, z: -200, r: 340, w: 1.0 },  // downtown (left display)
+  { x: -50, z: -350, r: 240, w: 0.5 },   // secondary cluster (middle)
+  { x: 1250, z: -250, r: 220, w: 0.4 },   // small cluster (right)
 ];
 
 /**
  * Seeded street grid with buildings on subdivided lots. All coordinates are local to a
  * group rotated by `rotation` around Y.
  */
-export function generateCity({ seed = 7, cols = 64, rows = 30, block = 56, street = 14, rotation = 0.55 } = {}) {
+export function generateCity({ seed = 7, cols = 120, rows = 70, block = 56, street = 14, rotation = 0.55 } = {}) {
   const rnd = mulberry32(seed);
   const pitch = block + street;
   const ox = -(cols * pitch) / 2, oz = -(rows * pitch) / 2;
-  const density = (x, z) => CENTERS.reduce((s, c) => s + c.w * Math.exp(-((x - c.x) ** 2 + (z - c.z) ** 2) / (2 * c.r * c.r)), 0);
+  const cos = Math.cos(rotation), sin = Math.sin(rotation);
+  const density = (lx, lz) => densityWorld(lx * cos + lz * sin, -lx * sin + lz * cos);
+  const densityWorld = (x, z) => CENTERS.reduce((s, c) => s + c.w * Math.exp(-((x - c.x) ** 2 + (z - c.z) ** 2) / (2 * c.r * c.r)), 0);
   const buildings = [];
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
@@ -38,8 +40,8 @@ export function generateCity({ seed = 7, cols = 64, rows = 30, block = 56, stree
           const inset = 1.2 + rnd() * 2.3;
           const x = bx + a * lot + lot / 2, z = bz + b * lot + lot / 2;
           const d = density(x, z);
-          const spike = rnd() < 0.08 + d * 0.3 ? 2.1 : 1;
-          const h = 7 + rnd() * 10 + d * (50 + rnd() * 170) * spike;
+          const spike = rnd() < 0.06 + d * 0.3 ? 2.2 : 1;
+          const h = 6 + rnd() * 9 + d * d * (70 + rnd() * 240) * spike;
           buildings.push({ x, z, w: lot - inset * 2, d: lot - inset * 2, h, seed: rnd(), district });
         }
       }
