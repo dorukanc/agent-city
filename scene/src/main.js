@@ -8,6 +8,7 @@ import { generateCity, mulberry32 } from './city.js';
 import { activityLevel, pulseLevel, districtBoosts, easeToward } from './activity.js';
 import { createGround } from './ground.js';
 import { createBuildings } from './buildings.js';
+import { createStreams } from './streams.js';
 import { createOverlay } from './overlay.js';
 import { connectStats } from './stats-client.js';
 import { demoStats } from './demo.js';
@@ -42,7 +43,8 @@ scene.add(group);
 const ground = createGround(city);
 const buildings = createBuildings(city);
 group.add(ground.mesh, buildings.mesh);
-const streams = { update() {} }; // replaced in Task 6
+const streams = createStreams(city, mulberry32(P.seed + 1));
+group.add(streams.mesh);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
