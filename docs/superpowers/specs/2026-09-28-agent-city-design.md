@@ -71,7 +71,7 @@ agent-city/
   (large, thousands-separated, animated count-up) · "42k / min". SF Pro, white,
   subtle shadow, bottom-left, matching the reference.
 - **Frame rate**: slice receives a target fps from the app (`?fps=`), and further
-  drops to 5 fps while `a == 0` and nothing is transitioning.
+  drops to ~10 fps while `a == 0` and nothing is transitioning.
 - **Standalone**: works in any browser; `?demo=1` cycles fake activity. With no
   collector reachable it stays idle and retries.
 
@@ -90,17 +90,18 @@ subagents), `projects`, `tokensToday`, `tokensPerMin`, and per-agent `cwd`s.
 ## 3. Collector (`collector/`)
 
 Node, no deps, polls every 2s, serves on `127.0.0.1:47823`:
-`GET /stats` (JSON) and `GET /events` (SSE, pushes on change).
+`GET /stats` (JSON), `GET /events` (SSE, pushes on change), and static files
+from `scene/` at `/`. Exits with code 3 if the port is already in use.
 
 - **Agents (herdr)**: `herdr agent list` → JSON. `working` = agents whose
-  `agent_status` is a working/busy state (exact values confirmed during
-  implementation via `herdr agent explain` / schema); `projects` = distinct `cwd`
-  among all non-exited agents. If herdr is missing or errors → fallback.
+  `agent_status` is `working` (herdr statuses: idle | working | blocked | done | unknown;
+  `blocked` = waiting on the user, not counted); `projects` = distinct project (cwd, worktrees folded into their repo)
+  among working agents. If herdr is missing or errors → fallback.
 - **Fallback (no herdr)**: main session `.jsonl` files under
   `~/.claude/projects/*/` modified in the last 30s count as working agents;
   projects = distinct project dirs among them.
 - **Subagents**: `~/.claude/projects/*/*/subagents/agent-*.jsonl` modified in the
-  last 20s.
+  last 30s. Overlay "Agents" = working agents + active subagents.
 - **Tokens**: incremental tail of all `~/.claude/projects/**/*.jsonl` (per-file
   byte offset remembered; only files modified today are scanned). For each
   assistant message with `message.usage` and a timestamp in local today: add
@@ -119,8 +120,8 @@ Node, no deps, polls every 2s, serves on `127.0.0.1:47823`:
   screens, sort by x, create one borderless `NSWindow` per screen with
   level `kCGDesktopWindowLevel`, `ignoresMouseEvents = true`,
   `collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]`,
-  hosting a `WKWebView` (transparent off, file URL to bundled `scene/`, with
-  file access) loading the slice URL. Screen x-offsets/sizes are passed, not
+  hosting a `WKWebView` loading the slice URL from the collector, which also
+  serves the bundled `scene/` over HTTP (WebKit blocks ES modules from `file://`). Screen x-offsets/sizes are passed, not
   hard-coded 1920.
 - Starts and supervises the collector (`node collector/index.js`), restart with
   backoff; locates node via `PATH` from a login shell.
